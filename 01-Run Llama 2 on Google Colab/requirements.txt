@@ -1,2 +1,3 @@
 llama-cpp-python
 huggingface_hub
+streamlit
