@@ -1,22 +1,14 @@
 import streamlit as st
-import langchain
-import transformers
-from transformers import AutoTokenizer
-from huggingface_hub import login
+from langchain.llms import CTransformers
+from langchain import PromptTemplate,  LLMChain
 
-# Log in to HuggingFace  
-login("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")
+# Load the local Llama model using the CTransformers class
+llm = CTransformers(model='models/llama-2-7b-chat.ggmlv3.q8_0.bin',
+                    model_type='llama',
+                    config={'max_new_tokens': 256,
+                            'temperature': 0.01})
 
-# Load model and tokenizer
-model = "meta-llama/Llama-2-7b-chat-hf"
-tokenizer = AutoTokenizer.from_pretrained(model)
-
-# Create pipeline and langchain objects 
-pipeline = transformers.pipeline("text-generation", 
-                model=model,
-                tokenizer=tokenizer)
-
-llm = langchain.HuggingFacePipeline(pipeline)
+# Create a text input for the user to enter the text to generate SQL query for
 
 template = """
              Create a SQL query snippet using the below text:
@@ -24,13 +16,13 @@ template = """
               Just SQL query:
            """
 
-prompt = langchain.PromptTemplate(template=template, input_variables=["text"])
+prompt = PromptTemplate(template=template, input_variables=["text"])
 
-llm_chain = langchain.LLMChain(prompt=prompt, llm=llm)
+llm_chain = LLMChain(prompt=prompt, llm=llm)
 
-st.title("SQL Query Generator")
+text = st.text_input("Enter text to generate SQL query for:")
 
-text = st.text_input("Enter text:", value="")
-if text:
-    response = llm_chain.run(text)
-    st.code(response)
+# Generate SQL query using the Llama model when the user clicks the "Generate" button
+if st.button("Generate"):
+    result = llm.generate([f"Create a SQL query snippet using the below text: ```{text}``` Just SQL query:"])
+    st.write(result)
