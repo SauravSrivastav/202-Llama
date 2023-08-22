@@ -1,0 +1,5 @@
+streamlit
+langchain
+transformers
+torch
+huggingface_hub
